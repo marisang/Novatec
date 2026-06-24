@@ -1,57 +1,61 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-<head>
-    <title>NovaTech Assistant</title>
-    <style>
-        body {
-            background: #ffffff;
-            color: #1f2937;
-            line-height: 1.6;
-        }
-        h1 {
-            color: #1f2937;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
-</head>
-<body>
-<h1>NovaTech Assistant</h1>
-{% csrf_token %}
-<input type="text" id="mensagem">
-<button onclick="enviar()">Enviar</button>
-<div id="resposta"></div>
-<script>
-    
-function getCookie(name) {
-    const cookieValue = document.cookie
-        .split('; ')
-        .find(row => row.startsWith(name + '='));
-    return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : '';
-}
+    <head>
+        <title>NovaTech Assistant</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca&family=Lexend:wght@100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    </head>
 
-async function enviar() {
-    const msg = document.getElementById('mensagem').value;
-    const token = getCookie('csrftoken');
+    <body>
+        <div class="container">
+            <img src="{% static 'imagens/logo.png' %}" alt="Logo NovaTech" class="logo">
+            <h1>NovaTec</h1>
+            {% csrf_token %}
+            <input type="text" id="mensagem">
+            <button onclick="enviar()">Enviar</button>
+            <div id="resposta"></div>
+        </div>
+        <script>
+            function getCookie(name) {
+                const cookieValue = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith(name + '='));
+                return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : '';
+            }
 
-    const response = await fetch('/chat/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': token
-        },
-        body: JSON.stringify({ mensagem: msg })
-    });
+            async function enviar() {
+                const msg = document.getElementById('mensagem').value;
+                const token = getCookie('csrftoken');
 
-    if (!response.ok) {
-        document.getElementById('resposta').textContent = 'Erro ao enviar mensagem.';
-        return;
-    }
+                const response = await fetch('/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': token
+                    },
+                    body: JSON.stringify({ mensagem: msg })
+                });
 
-    const dados = await response.json();
-    document.getElementById('resposta').textContent = dados.resposta;
-}
-</script>
-</body>
+                if (!response.ok) {
+                    document.getElementById('resposta').textContent = 'Erro ao enviar mensagem.';
+                    return;
+                }
+
+                const dados = await response.json();
+                document.getElementById('resposta').textContent = dados.resposta;
+            }
+
+            document.getElementById("mensagem").addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                     enviar();
+                     }
+            });
+        </script>
+    </body>
 </html>
