@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 import json
-from chat.models import Projeto
+from chat.models import Cliente, Projeto, Contrato, Chunk
 
 def home(request):
     return render(request, 'chat.html')
