@@ -1,29 +1,64 @@
 from django.db import models
+from pgvector.django import VectorField
 
 class Cliente(models.Model):
-    nome = models.CharField(max_length=255)
-    segmento = models.CharField(max_length=100)
-    data_entrada = models.DateField(null=True, blank=True)
-    @property  #faz com que o valor total seja uma soma automática dos valores de todos os preojetos do cliente, ***não consegui testar
-    def valor_total_cliente(self):
-        return self.projetos.aggregate(
-            total=Sum("valor_projeto")
-        )["total"] or 0
+
+    SEGMENTO_CHOICES = [
+        ('varejo', 'Varejo'),
+        ('saude', 'Saúde'),
+        ('transporte', 'Transporte'),
+        ('industria', 'Indústria'),
+    ]
+
+    nome_cliente = models.CharField(max_length=255)
+    segmento = models.CharField(max_length=100, choices=SEGMENTO_CHOICES, default='varejo')
 
     def __str__(self):
         return self.nome
 
+
 class Projeto(models.Model):
+
+    STATUS_CHOICES = [
+        ('finalizado', 'Finalizado'),
+        ('andamento', 'Em andamento'),
+        ('planejamento', 'Planejamento'),
+        ('pausado', 'Pausado'),
+    ]
+
     cliente = models.ForeignKey(
         Cliente,
         on_delete=models.CASCADE,
-        related_name="projetos"
+        related_name='projetos'
     )
     nome_projeto = models.CharField(max_length=255)
-    status_projeto = models.CharField(max_length=50)
-    valor_total_projeto= models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='finalizado')
+
     def __str__(self):
-        return self.nome_projeto
+        return f"{self.nome_projeto} - {self.cliente.nome}"
+    
+class Contrato(models.Model):
+
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name='contratos'
+    )
+    projeto = models.ForeignKey(
+        Projeto,
+        on_delete=models.CASCADE,
+        related_name='contratos'
+    )
+    conteudo = models.FileField(upload_to='documentos/')
+    conteudo_texto = models.TextField()
+    valor = models.DecimalField(decimal_places=2)
+
+class Chunk(models.Model):
+
+    contrato = models.ForeignKey(
+        Contrato,
+        on_delete=models.CASCADE,
+        related_name='chunks'
+    )
+    conteudo = models.TextField()
+    embedding = VectorField(dimensions=1536)
